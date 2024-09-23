@@ -1,0 +1,8 @@
+// init project
+go mod init [nama_root]
+
+go get github.com/lib/pq
+
+
+//Run go mod tidy: Jalankan perintah berikut untuk memperbaiki dependensi dan import path di proyek Anda:
+go mod tidy

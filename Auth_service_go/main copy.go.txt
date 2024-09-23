@@ -1,0 +1,75 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"net/http"
+	"os"
+
+	"Auth_service_go/middlewares"
+	"Auth_service_go/routes"
+	"Auth_service_go/utils"
+
+	_ "github.com/lib/pq"
+	"github.com/lpernett/godotenv"
+)
+
+func main() {
+	referenceID := "MAIN"
+
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		utils.Log(referenceID, "Error loading .env file", err)
+		return
+	}
+
+	// Load database connection variables
+	dbUser := os.Getenv("DB_USER")
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_NAME")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbPort := os.Getenv("DB_PORT")
+
+	// Database connection string
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	utils.Log(referenceID, "DB URL", connStr)
+
+	// Open the database connection
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		utils.Log(referenceID, "Failed to connect to the database:", err)
+		return
+	}
+	defer db.Close()
+
+	// Test database connection
+	if err := db.Ping(); err != nil {
+		utils.Log(referenceID, "Database connection failed:", err)
+		return
+	}
+	utils.Log(referenceID, "Database connection successful!")
+
+	// Setup the HTTP server with a handler
+	mux := http.NewServeMux()
+
+	// Route for home page
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		utils.Log(referenceID, "Received request for /")
+		w.Write([]byte("Request received"))
+	}))
+
+	// Add routes from authRoutes
+	authRouter := routes.NewRouter(db)
+	mux.Handle("/login", authRouter)
+	mux.Handle("/verify-challenge", authRouter)
+
+	// Add middleware to the router
+	loggedMux := middlewares.LogRequestMiddleware(mux)
+
+	// Start the server
+	utils.Log(referenceID, "Server running on :3000")
+	if err := http.ListenAndServe(":3000", loggedMux); err != nil {
+		utils.Log(referenceID, "Failed to start server:", err)
+	}
+}
