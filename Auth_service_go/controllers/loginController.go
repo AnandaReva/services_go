@@ -9,44 +9,12 @@ import (
 	"time"
 )
 
-// upsertChallengeResponse upserts challenge response into the database
-func upsertChallengeResponse(w http.ResponseWriter, db *sql.DB, fullNonce string, userID int64, challengeResponse string, currentTime int64) error {
-	referenceId := utils.GlobalVarInstance.GetReferenceId()
-	upsertQuery := `
-        INSERT INTO servouser.challenge_response (full_nonce, user_id, challenge_response, tstamp)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (user_id) DO UPDATE
-        SET full_nonce = EXCLUDED.full_nonce,
-            challenge_response = EXCLUDED.challenge_response,
-            tstamp = EXCLUDED.tstamp
-    `
-
-	utils.Log(referenceId, "DB_EXEC", "Executing upsert query for challenge response:", upsertQuery)
-	_, err := db.Exec(upsertQuery, fullNonce, userID, challengeResponse, currentTime)
-	if err != nil {
-		utils.Log("DB_ERROR", "Error during upsert challenge response", err)
-		errorResponse := map[string]interface{}{
-			"error_code":    5000000,
-			"error_message": "internal server error",
-		}
-
-		errorResponseJSON, _ := json.Marshal(errorResponse)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errorResponseJSON) // Write the response body
-		utils.Log(referenceId, "RESPONSE_SENT", string(errorResponseJSON))
-		return err
-	}
-
-	utils.Log(referenceId, "DB_SUCCESS: ", "Challenge response upserted successfully.")
-	return nil
-}
-
 // HandleLoginRequest handles login request by processing username and half_nonce
 func HandleLoginRequest(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	referenceId := utils.GlobalVarInstance.GetReferenceId()
-	
+
+	utils.Log(referenceId, "\nExecuting method: HandleLoginRequest")
+
 	var requestBody struct {
 		Username  string `json:"username"`
 		HalfNonce string `json:"half_nonce"`
@@ -140,6 +108,7 @@ func HandleLoginRequest(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 			"salt":       fakeSalt,
 			"iterations": fakeIterations,
 		}
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 		utils.Log(referenceId, "USER_NOT_FOUND", "User not found, returning fake data for username:", username)
 		return
@@ -236,4 +205,40 @@ func HandleLoginRequest(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	// Log the successful response
 	utils.Log(referenceId, "RESPONSE_SENT", "Response sent successfully:", response)
+}
+
+// upsertChallengeResponse upserts challenge response into the database
+func upsertChallengeResponse(w http.ResponseWriter, db *sql.DB, fullNonce string, userID int64, challengeResponse string, currentTime int64) error {
+	referenceId := utils.GlobalVarInstance.GetReferenceId()
+	utils.Log(referenceId, "\nExecuting method: upsertChallengeResponse")
+
+	upsertQuery := `
+        INSERT INTO servouser.challenge_response (full_nonce, user_id, challenge_response, tstamp)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id) DO UPDATE
+        SET full_nonce = EXCLUDED.full_nonce,
+            challenge_response = EXCLUDED.challenge_response,
+            tstamp = EXCLUDED.tstamp
+    `
+
+	utils.Log(referenceId, "DB_EXEC", "Executing upsert query for challenge response:", upsertQuery)
+	_, err := db.Exec(upsertQuery, fullNonce, userID, challengeResponse, currentTime)
+	if err != nil {
+		utils.Log("DB_ERROR", "Error during upsert challenge response", err)
+		errorResponse := map[string]interface{}{
+			"error_code":    5000000,
+			"error_message": "internal server error",
+		}
+
+		errorResponseJSON, _ := json.Marshal(errorResponse)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errorResponseJSON) // Write the response body
+		utils.Log(referenceId, "RESPONSE_SENT", string(errorResponseJSON))
+		return err
+	}
+
+	utils.Log(referenceId, "DB_SUCCESS: ", "Challenge response upserted successfully.")
+	return nil
 }

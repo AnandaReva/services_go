@@ -4,49 +4,52 @@ import (
 	"net/http"
 
 	"Auth_service_go/config"
+	"Auth_service_go/docs"
 	"Auth_service_go/middlewares"
 	"Auth_service_go/routes"
 	"Auth_service_go/utils"
 
 	"github.com/lpernett/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
-	referenceID := "MAIN"
+	// Swagger docs
 
-	// Load environment variables from .env file
+	docs.SwaggerInfo.Title = "API Documentation"
+	docs.SwaggerInfo.Description = "Documentation for Auth service endpoints"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:3000"
+	docs.SwaggerInfo.BasePath = "/"
+
+	referenceId := "MAIN"
 	if err := godotenv.Load(); err != nil {
-		utils.Log(referenceID, "Error loading .env file", err)
+		utils.Log(referenceId, "Error loading .env file", err)
 		return
 	}
 
-	// Open the database connection using the separated utility function
-	db, err := config.DBConnect(referenceID)
+	db, err := config.DBConnect(referenceId)
 	if err != nil {
 		return
 	}
 	defer db.Close()
 
-	// Setup the HTTP server with a handler
 	mux := http.NewServeMux()
-
-	// Route for home page
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.Log(referenceID, "Received request for /")
+		utils.Log(referenceId, "Received request for /")
 		w.Write([]byte("Request received"))
 	}))
 
-	// Add routes from authRoutes
-	authRouter := routes.NewRouter(db)
+	// Swagger UI
+	mux.Handle("/docs/*", httpSwagger.WrapHandler)
+
+	authRouter := routes.AuthRoutes(db)
 	mux.Handle("/login", authRouter)
 	mux.Handle("/verify-challenge", authRouter)
 
-	// Add middleware to the router
 	loggedMux := middlewares.LogRequestMiddleware(mux)
-
-	// Start the server
-	utils.Log(referenceID, "Server running on :3000")
+	utils.Log(referenceId, "Server running on http://localhost:3000/")
 	if err := http.ListenAndServe(":3000", loggedMux); err != nil {
-		utils.Log(referenceID, "Failed to start server:", err)
+		utils.Log(referenceId, "Failed to start server:", err)
 	}
 }

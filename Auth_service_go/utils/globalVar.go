@@ -1,12 +1,12 @@
 // utils/globalvar.go
 package utils
 
-// GlobalVar struct dengan private variabel ReferenceId dan version
+// GlobalVar struct
 type GlobalVar struct {
 	ReferenceId string
 }
 
-// Constructor untuk GlobalVar
+// Constructor for GlobalVar
 func NewGlobalVar() *GlobalVar {
 	return &GlobalVar{
 		ReferenceId: "",

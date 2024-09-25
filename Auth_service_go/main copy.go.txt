@@ -1,17 +1,15 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"net/http"
-	"os"
 
+	"Auth_service_go/config"
 	"Auth_service_go/middlewares"
 	"Auth_service_go/routes"
 	"Auth_service_go/utils"
 
-	_ "github.com/lib/pq"
 	"github.com/lpernett/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -23,32 +21,12 @@ func main() {
 		return
 	}
 
-	// Load database connection variables
-	dbUser := os.Getenv("DB_USER")
-	dbHost := os.Getenv("DB_HOST")
-	dbName := os.Getenv("DB_NAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbPort := os.Getenv("DB_PORT")
-
-	// Database connection string
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
-
-	utils.Log(referenceID, "DB URL", connStr)
-
-	// Open the database connection
-	db, err := sql.Open("postgres", connStr)
+	// Open the database connection using the separated utility function
+	db, err := config.DBConnect(referenceID)
 	if err != nil {
-		utils.Log(referenceID, "Failed to connect to the database:", err)
 		return
 	}
 	defer db.Close()
-
-	// Test database connection
-	if err := db.Ping(); err != nil {
-		utils.Log(referenceID, "Database connection failed:", err)
-		return
-	}
-	utils.Log(referenceID, "Database connection successful!")
 
 	// Setup the HTTP server with a handler
 	mux := http.NewServeMux()
@@ -59,6 +37,9 @@ func main() {
 		w.Write([]byte("Request received"))
 	}))
 
+	//swagger docs
+	mux.Handle("/swagger/*", httpSwagger.WrapHandler)
+
 	// Add routes from authRoutes
 	authRouter := routes.NewRouter(db)
 	mux.Handle("/login", authRouter)
@@ -68,7 +49,7 @@ func main() {
 	loggedMux := middlewares.LogRequestMiddleware(mux)
 
 	// Start the server
-	utils.Log(referenceID, "Server running on :3000")
+	utils.Log(referenceID, "Server running on http://localhost:3000/")
 	if err := http.ListenAndServe(":3000", loggedMux); err != nil {
 		utils.Log(referenceID, "Failed to start server:", err)
 	}

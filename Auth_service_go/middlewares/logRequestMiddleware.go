@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-// Struct to store global variables like reference ID
-type GlobalVar struct {
-	referenceId string
-}
-
-// A simple global variable for demo purposes
-var globalVar GlobalVar
-
 func LogRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Generate a unique reference ID

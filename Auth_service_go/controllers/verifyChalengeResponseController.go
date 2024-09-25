@@ -1,3 +1,4 @@
+// controllers/verifyChalengeResponseController.go
 package controllers
 
 import (
@@ -10,124 +11,19 @@ import (
 	"strconv"
 )
 
-// deleteChallengeResponse deletes a challenge response from the database
-func deleteChallengeResponse(db *sql.DB, fullNonce string) {
-	referenceId := utils.GlobalVarInstance.GetReferenceId()
 
-	utils.Log(referenceId, "Executing method: deleteChallengeResponse")
-	utils.Log(referenceId, "Full nonce:", fullNonce)
 
-	deleteQuery := "DELETE FROM servouser.challenge_response WHERE full_nonce = $1 RETURNING *"
-	utils.Log(referenceId, "Delete Challenge Response Query:", deleteQuery)
-
-	_, err := db.Exec(deleteQuery, fullNonce)
-	if err != nil {
-		utils.Log(referenceId, "Failed to delete challenge response:", err)
-		return
-	}
-
-	utils.Log(referenceId, "Challenge response successfully deleted for full_nonce:", fullNonce)
-}
-
-// getUserPrivileges retrieves user privileges based on user ID
-func getUserPrivileges(db *sql.DB, userId int64) string {
-	referenceId := utils.GlobalVarInstance.GetReferenceId()
-	utils.Log(referenceId, "Executing method: getUserPrivileges")
-
-	getRoleQuery := "SELECT role FROM servouser.user WHERE id = $1 LIMIT 1"
-	utils.Log(referenceId, "Get role query:", getRoleQuery)
-
-	var role string
-	err := db.QueryRow(getRoleQuery, userId).Scan(&role)
-	if err == sql.ErrNoRows {
-		utils.Log(referenceId, "No role found for user ID:", userId)
-		return "0"
-	} else if err != nil {
-		utils.Log(referenceId, "Error retrieving role:", err)
-		return "0"
-	}
-
-	utils.Log(referenceId, "userId:", userId)
-	utils.Log(referenceId, "Role from db servouser.user:", role)
-
-	getPrivilegesQuery := "SELECT privileges FROM servouser.role WHERE name = $1 LIMIT 1"
-	utils.Log(referenceId, "Get privileges query:", getPrivilegesQuery)
-
-	var privileges string
-	err = db.QueryRow(getPrivilegesQuery, role).Scan(&privileges)
-	if err == sql.ErrNoRows {
-		utils.Log(referenceId, "No privileges found for the role:", role)
-		return "0"
-	} else if err != nil {
-		utils.Log(referenceId, "Error retrieving privileges:", err)
-		return "0"
-	}
-
-	utils.Log(referenceId, "Privileges from db servouser.role:", privileges)
-	return privileges
-}
-
-// getOrganizationTier retrieves the organization tier based on user ID
-func getOrganizationTier(db *sql.DB, userId int64) string {
-	referenceId := utils.GlobalVarInstance.GetReferenceId()
-	utils.Log(referenceId, "Executing method: getOrganizationTier")
-
-	getOrgIdQuery := "SELECT organization_id FROM servouser.user WHERE id = $1 LIMIT 1"
-	utils.Log(referenceId, "Get organization ID query:", getOrgIdQuery)
-
-	var organizationId int64
-	err := db.QueryRow(getOrgIdQuery, userId).Scan(&organizationId)
-	if err == sql.ErrNoRows {
-		utils.Log(referenceId, "No organization_id found for user ID:", userId)
-		return "0"
-	} else if err != nil {
-		utils.Log(referenceId, "Error retrieving organization ID:", err)
-		return "0"
-	}
-
-	utils.Log(referenceId, "User ID:", userId)
-	utils.Log(referenceId, "Organization ID from servouser.user:", organizationId)
-
-	getOrganizationTierQuery := "SELECT tier FROM servouser.organization WHERE id = $1 LIMIT 1"
-	utils.Log(referenceId, "Get organization tier query:", getOrganizationTierQuery)
-
-	var tier string
-	err = db.QueryRow(getOrganizationTierQuery, organizationId).Scan(&tier)
-	if err == sql.ErrNoRows {
-		utils.Log(referenceId, "No tier found for organization_id:", organizationId)
-		return "0"
-	} else if err != nil {
-		utils.Log(referenceId, "Error retrieving organization tier:", err)
-		return "0"
-	}
-
-	utils.Log(referenceId, "Organization tier from servouser.organization:", tier)
-	return tier
-}
-
-// upsertSession upserts a session into the database
-func upsertSession(db *sql.DB, sessionID string, userID string, sessionSecret string) error {
-	referenceId := utils.GlobalVarInstance.GetReferenceId()
-	utils.Log(referenceId, "Executing method: upsertSession")
-
-	queryUpsertSession := `
-        INSERT INTO servouser.session (session_id, user_id, session_secret, tstamp, st)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (user_id) DO UPDATE
-        SET session_id = EXCLUDED.session_id,
-            session_secret = EXCLUDED.session_secret,
-            tstamp = EXCLUDED.tstamp,
-            st = EXCLUDED.st
-    `
-	_, err := db.Exec(queryUpsertSession, sessionID, userID, sessionSecret, time.Now().Unix(), 1)
-	if err != nil {
-		utils.Log(referenceId, "Error during upsert session:", err)
-		return err
-	}
-
-	utils.Log(referenceId, "Session upserted successfully.")
-	return nil
-}
+// HandleVerifyChallengeRequest godoc
+// @Summary Handle verify challenge request
+// @Description Handle verify challenge by verifying full_nonce and challenge_response
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param verify body struct{FullNonce string `json:"full_nonce"`, ChallengeResponse string `json:"challenge_response"`} true "Challenge data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /verify-challenge [post]
 
 func HandleChallengeResponseVerification(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	referenceId := utils.GlobalVarInstance.GetReferenceId()
@@ -372,7 +268,7 @@ func HandleChallengeResponseVerification(db *sql.DB, w http.ResponseWriter, r *h
 		// w.WriteHeader(http.StatusOK)
 		// json.NewEncoder(w).Encode(response)
 
-		utils.Log(referenceId, "Continuing Response Real Backend to FE:", response)
+		utils.Log(referenceId, "Continuing Response to FE:", response)
 	} else {
 		http.Error(w, "unauthenticated", http.StatusUnauthorized)
 		utils.Log(referenceId, "Invalid challenge response.")
@@ -392,4 +288,124 @@ func HandleChallengeResponseVerification(db *sql.DB, w http.ResponseWriter, r *h
 	}
 
 	defer deleteChallengeResponse(db, fullNonce)
+}
+
+
+// deleteChallengeResponse deletes a challenge response from the database
+func deleteChallengeResponse(db *sql.DB, fullNonce string) {
+	referenceId := utils.GlobalVarInstance.GetReferenceId()
+
+	utils.Log(referenceId, "\nExecuting method: deleteChallengeResponse")
+	utils.Log(referenceId, "Full nonce:", fullNonce)
+
+	deleteQuery := "DELETE FROM servouser.challenge_response WHERE full_nonce = $1 RETURNING *"
+	utils.Log(referenceId, "Delete Challenge Response Query:", deleteQuery)
+
+	_, err := db.Exec(deleteQuery, fullNonce)
+	if err != nil {
+		utils.Log(referenceId, "Failed to delete challenge response:", err)
+		return
+	}
+
+	utils.Log(referenceId, "Challenge response successfully deleted for full_nonce:", fullNonce)
+}
+
+// getUserPrivileges retrieves user privileges based on user ID
+func getUserPrivileges(db *sql.DB, userId int64) string {
+	referenceId := utils.GlobalVarInstance.GetReferenceId()
+	utils.Log(referenceId, "\nExecuting method: getUserPrivileges")
+
+	getRoleQuery := "SELECT role FROM servouser.user WHERE id = $1 LIMIT 1"
+	utils.Log(referenceId, "Get role query:", getRoleQuery)
+
+	var role string
+	err := db.QueryRow(getRoleQuery, userId).Scan(&role)
+	if err == sql.ErrNoRows {
+		utils.Log(referenceId, "No role found for user ID:", userId)
+		return "0"
+	} else if err != nil {
+		utils.Log(referenceId, "Error retrieving role:", err)
+		return "0"
+	}
+
+	utils.Log(referenceId, "userId:", userId)
+	utils.Log(referenceId, "Role from db servouser.user:", role)
+
+	getPrivilegesQuery := "SELECT privileges FROM servouser.role WHERE name = $1 LIMIT 1"
+	utils.Log(referenceId, "Get privileges query:", getPrivilegesQuery)
+
+	var privileges string
+	err = db.QueryRow(getPrivilegesQuery, role).Scan(&privileges)
+	if err == sql.ErrNoRows {
+		utils.Log(referenceId, "No privileges found for the role:", role)
+		return "0"
+	} else if err != nil {
+		utils.Log(referenceId, "Error retrieving privileges:", err)
+		return "0"
+	}
+
+	utils.Log(referenceId, "Privileges from db servouser.role:", privileges)
+	return privileges
+}
+
+// getOrganizationTier retrieves the organization tier based on user ID
+func getOrganizationTier(db *sql.DB, userId int64) string {
+	referenceId := utils.GlobalVarInstance.GetReferenceId()
+	utils.Log(referenceId, "\nExecuting method: getOrganizationTier")
+
+	getOrgIdQuery := "SELECT organization_id FROM servouser.user WHERE id = $1 LIMIT 1"
+	utils.Log(referenceId, "Get organization ID query:", getOrgIdQuery)
+
+	var organizationId int64
+	err := db.QueryRow(getOrgIdQuery, userId).Scan(&organizationId)
+	if err == sql.ErrNoRows {
+		utils.Log(referenceId, "No organization_id found for user ID:", userId)
+		return "0"
+	} else if err != nil {
+		utils.Log(referenceId, "Error retrieving organization ID:", err)
+		return "0"
+	}
+
+	utils.Log(referenceId, "User ID:", userId)
+	utils.Log(referenceId, "Organization ID from servouser.user:", organizationId)
+
+	getOrganizationTierQuery := "SELECT tier FROM servouser.organization WHERE id = $1 LIMIT 1"
+	utils.Log(referenceId, "Get organization tier query:", getOrganizationTierQuery)
+
+	var tier string
+	err = db.QueryRow(getOrganizationTierQuery, organizationId).Scan(&tier)
+	if err == sql.ErrNoRows {
+		utils.Log(referenceId, "No tier found for organization_id:", organizationId)
+		return "0"
+	} else if err != nil {
+		utils.Log(referenceId, "Error retrieving organization tier:", err)
+		return "0"
+	}
+
+	utils.Log(referenceId, "Organization tier from servouser.organization:", tier)
+	return tier
+}
+
+// upsertSession upserts a session into the database
+func upsertSession(db *sql.DB, sessionID string, userID string, sessionSecret string) error {
+	referenceId := utils.GlobalVarInstance.GetReferenceId()
+	utils.Log(referenceId, "\nExecuting method: upsertSession")
+
+	queryUpsertSession := `
+        INSERT INTO servouser.session (session_id, user_id, session_secret, tstamp, st)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (user_id) DO UPDATE
+        SET session_id = EXCLUDED.session_id,
+            session_secret = EXCLUDED.session_secret,
+            tstamp = EXCLUDED.tstamp,
+            st = EXCLUDED.st
+    `
+	_, err := db.Exec(queryUpsertSession, sessionID, userID, sessionSecret, time.Now().Unix(), 1)
+	if err != nil {
+		utils.Log(referenceId, "Error during upsert session:", err)
+		return err
+	}
+
+	utils.Log(referenceId, "Session upserted successfully.")
+	return nil
 }

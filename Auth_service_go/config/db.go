@@ -1,16 +1,16 @@
 package config
 
 import (
+	"Auth_service_go/utils"
 	"database/sql"
 	"fmt"
 	"os"
-	"Auth_service_go/utils"
 
 	_ "github.com/lib/pq"
 )
 
 // DBConnect initializes and returns a database connection
-func DBConnect(referenceID string) (*sql.DB, error) {
+func DBConnect(referenceId string) (*sql.DB, error) {
 	// Load database connection variables from environment
 	dbUser := os.Getenv("DB_USER")
 	dbHost := os.Getenv("DB_HOST")
@@ -19,23 +19,23 @@ func DBConnect(referenceID string) (*sql.DB, error) {
 	dbPort := os.Getenv("DB_PORT")
 
 	// Database connection string
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
+	connUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	utils.Log(referenceID, "DB URL", connStr)
+	utils.Log(referenceId, "DB URL", connUrl)
 
 	// Open the database connection
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", connUrl)
 	if err != nil {
-		utils.Log(referenceID, "Failed to connect to the database:", err)
+		utils.Log(referenceId, "Failed to connect to the database:", err)
 		return nil, err
 	}
 
 	// Test the database connection
 	if err := db.Ping(); err != nil {
-		utils.Log(referenceID, "Database connection failed:", err)
+		utils.Log(referenceId, "Database connection failed:", err)
 		return nil, err
 	}
 
-	utils.Log(referenceID, "Database connection successful!")
+	utils.Log(referenceId, "Database connection successful!")
 	return db, nil
 }

@@ -16,6 +16,8 @@ func GenerateRandomString(length int) string {
 		result[i] = charset[seededRand.Intn(len(charset))]
 	}
 
-	Log(referenceId, "Random String generated", result)
+	randomString := string(result)
+	Log(referenceId, "Result: ", result)
+	Log(referenceId, "Random String generated", randomString)
 	return string(result)
 }

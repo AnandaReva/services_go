@@ -2,6 +2,12 @@
 go mod init [nama_root]
 
 go get github.com/lib/pq
+go get github.com/lpernett/godotenv
+
+go install github.com/swaggo/swag/cmd/swag@latest
+go get -u github.com/swaggo/http-swagger
+go get -u github.com/swaggo/swag/cmd/swag
+go get -u github.com/swaggo/swag
 
 
 //Run go mod tidy: Jalankan perintah berikut untuk memperbaiki dependensi dan import path di proyek Anda:
