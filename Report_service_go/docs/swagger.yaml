@@ -1,0 +1,629 @@
+definitions:
+  controllers.Data1:
+    properties:
+      bot_id:
+        description: x-order=5 untuk BotID
+        type: string
+        x-order: "5"
+      direction:
+        description: x-order=4 untuk Direction
+        type: string
+        x-order: "4"
+      page:
+        description: x-order=2 untuk Page
+        type: integer
+        x-order: "2"
+      row_length:
+        description: x-order=1 untuk RowLength
+        type: integer
+        x-order: "1"
+      sort_column:
+        description: x-order=3 untuk SortColumn
+        type: integer
+        x-order: "3"
+    required:
+    - bot_id
+    - direction
+    - page
+    - row_length
+    - sort_column
+    type: object
+  controllers.Data2:
+    properties:
+      bot_id:
+        description: x-order=5 untuk BotID
+        type: string
+        x-order: "1"
+    required:
+    - bot_id
+    type: object
+  controllers.Data3:
+    properties:
+      bot_id:
+        description: x-order=5 untuk BotID
+        type: string
+        x-order: "1"
+    required:
+    - bot_id
+    type: object
+  controllers.requestBody1:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/controllers.Data1'
+        description: x-order=1 untuk Data
+        x-order: "1"
+      date_mode:
+        description: x-order=6 untuk DateMode
+        type: integer
+        x-order: "6"
+      from_date:
+        description: x-order=3 untuk FromDate
+        type: integer
+        x-order: "3"
+      search_filter:
+        description: Max 50 karakter, x-order=5 untuk SearchFilter
+        maxLength: 50
+        type: string
+        x-order: "5"
+      to_date:
+        description: x-order=4 untuk ToDate
+        type: integer
+        x-order: "4"
+    required:
+    - data
+    - date_mode
+    - from_date
+    - to_date
+    type: object
+  controllers.requestBody2:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/controllers.Data2'
+        description: x-order=1 untuk Data
+        x-order: "1"
+      date_mode:
+        description: x-order=6 untuk DateMode
+        type: integer
+        x-order: "6"
+      from_date:
+        description: x-order=3 untuk FromDate
+        type: integer
+        x-order: "3"
+      to_date:
+        description: x-order=4 untuk ToDate
+        type: integer
+        x-order: "4"
+    required:
+    - data
+    - date_mode
+    - from_date
+    - to_date
+    type: object
+  controllers.requestBody3:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/controllers.Data3'
+        description: x-order=1 untuk Data
+        x-order: "1"
+      date_mode:
+        description: x-order=6 untuk DateMode
+        type: integer
+        x-order: "6"
+      from_date:
+        description: x-order=3 untuk FromDate
+        type: integer
+        x-order: "3"
+      search_filter:
+        description: Max 50 karakter, x-order=5 untuk SearchFilter
+        maxLength: 50
+        type: string
+        x-order: "5"
+      to_date:
+        description: x-order=4 untuk ToDate
+        type: integer
+        x-order: "4"
+    required:
+    - data
+    - date_mode
+    - from_date
+    - to_date
+    type: object
+  controllers.requestBody5:
+    properties:
+      bot_id:
+        description: x-order=5 untuk BotID
+        type: string
+        x-order: "5"
+    required:
+    - bot_id
+    type: object
+  controllers.requestBody6:
+    properties:
+      bot_id:
+        type: string
+        x-order: "1"
+      child_prompt_id:
+        type: string
+        x-order: "2"
+      classification_name:
+        type: string
+        x-order: "4"
+      knowledge_text:
+        type: string
+        x-order: "3"
+    required:
+    - bot_id
+    - child_prompt_id
+    - classification_name
+    - knowledge_text
+    type: object
+  controllers.requestBody7:
+    properties:
+      bot_id:
+        type: string
+        x-order: "1"
+    required:
+    - bot_id
+    type: object
+  controllers.requestBody8:
+    properties:
+      bot_id:
+        type: string
+        x-order: "1"
+      greeting:
+        type: string
+        x-order: "2"
+      topics:
+        type: string
+        x-order: "3"
+    required:
+    - bot_id
+    - greeting
+    - topics
+    type: object
+  controllers.requestBody9:
+    properties:
+      bot_id:
+        type: string
+        x-order: "1"
+    required:
+    - bot_id
+    type: object
+info:
+  contact: {}
+paths:
+  /get_bot_conversation_history_table:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the conversation history of a bot from a
+        backend service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody1
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody1'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 1. Retrieve bot conversation history
+      tags:
+      - Bot Conversation
+  /get_bot_conversation_topic_chart:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the conversation topic chart of a bot from
+        a backend service
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody3
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody3'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 3. Retrieve bot conversation topic chart
+      tags:
+      - Bot Conversation
+  /get_bot_executive_summary:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the executive summary of a bot from a backend
+        service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody2
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody2'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 2. Retrieve bot executive summary
+      tags:
+      - Bot Conversation
+  /get_bot_internal_greeting:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetchs the  internal greeting of a bot from a backend
+        service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody7
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody7'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 7. Get bot internal Greeting
+      tags:
+      - Bot Internal
+  /get_bot_internal_knowledge:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetches the  internal konwledge of a bot from a backend
+        service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody5
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody5'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 5. Retrieve bot internal konwledge
+      tags:
+      - Bot Internal
+  /get_initial_data:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint fetchs the  initial data a bot from a backend service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody9
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody9'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 9. Get bot initial data
+      tags:
+      - Bot Inital Data
+  /update_bot_internal_greeting:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint updates the  internal greeting of a bot from a backend
+        service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody8
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody8'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 8. Update bot internal greeting
+      tags:
+      - Bot Internal
+  /update_bot_internal_knowledge:
+    post:
+      consumes:
+      - application/json
+      description: This endpoint updates the  internal konwledge of a bot from a backend
+        service.
+      parameters:
+      - description: Request Body
+        in: body
+        name: requestBody6
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.requestBody6'
+      - description: Session ID for authentication
+        in: header
+        name: ecwx-session-id
+        required: true
+        type: string
+      - description: Hash for request validation
+        in: header
+        name: ecwx-hash
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 6. Update bot internal konwledge
+      tags:
+      - Bot Internal
+swagger: "2.0"

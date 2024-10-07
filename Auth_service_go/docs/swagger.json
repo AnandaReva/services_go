@@ -3,5 +3,154 @@
     "info": {
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/login": {
+            "post": {
+                "description": "This API endpoint processes the login request by accepting a username and half_nonce, then performs various validation steps before returning a full_nonce, salt, and iteration count.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Handle login request",
+                "parameters": [
+                    {
+                        "description": "Login request body",
+                        "name": "requestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the full_nonce, salt, and iterations if valid user found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, possible errors: missing fields, half_nonce length mismatch",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests, user has to wait before trying again",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/verify-challenge": {
+            "post": {
+                "description": "This API verifies a challenge response by comparing it with the stored challenge in the database. If successful, it creates a session and returns session details and user privileges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify challenge response",
+                "parameters": [
+                    {
+                        "description": "Challenge response verification request body",
+                        "name": "requestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ChallengeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns session ID, nonce2, user privileges, and tier if verification is successful",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request, possible errors: missing fields, full_nonce length mismatch",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated, challenge response did not match",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers.ChallengeRequest": {
+            "type": "object",
+            "required": [
+                "challenge_response",
+                "full_nonce"
+            ],
+            "properties": {
+                "full_nonce": {
+                    "type": "string",
+                    "x-order": "1"
+                },
+                "challenge_response": {
+                    "type": "string",
+                    "x-order": "2"
+                }
+            }
+        },
+        "controllers.LoginRequest": {
+            "type": "object",
+            "required": [
+                "half_nonce",
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "x-order": "1"
+                },
+                "half_nonce": {
+                    "type": "string",
+                    "x-order": "2"
+                }
+            }
+        }
+    }
 }

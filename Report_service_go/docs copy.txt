@@ -1,0 +1,172 @@
+package docs
+
+import "github.com/swaggo/swag"
+
+const docTemplate = `{
+    "schemes": {{ marshal .Schemes }},
+    "swagger": "2.0",
+    "info": {
+        "description": "{{escape .Description}}",
+        "title": "{{.Title}}",
+        "contact": {},
+        "version": "{{.Version}}"
+    },
+    "host": "{{.Host}}",
+    "basePath": "{{.BasePath}}",
+    "paths": {
+        "/get_bot_conversation_history_table": {
+            "post": {
+                "summary": "Get Bot Conversation History",
+                "description": "Retrieve the conversation history for a specified bot.",
+                "tags": ["conversation"],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "requestBody",
+                        "description": "Request body containing bot ID and additional filters.",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "bot_id": {
+                                            "type": "string",
+                                            "description": "The ID of the bot whose conversation history is to be retrieved."
+                                        },
+                                        "row_length": {
+                                            "type": "integer",
+                                            "description": "The number of rows to return."
+                                        },
+                                        "page": {
+                                            "type": "integer",
+                                            "description": "The page number for pagination."
+                                        },
+                                        "sort_column": {
+                                            "type": "integer",
+                                            "description": "The column index by which to sort the results."
+                                        },
+                                        "direction": {
+                                            "type": "string",
+                                            "enum": ["asc", "desc"],
+                                            "description": "The direction to sort the results."
+                                        }
+                                    },
+                                    "required": ["bot_id"]
+                                },
+                                "from_date": {
+                                    "type": "integer",
+                                    "description": "Start date for filtering results (timestamp)."
+                                },
+                                "to_date": {
+                                    "type": "integer",
+                                    "description": "End date for filtering results (timestamp)."
+                                },
+                                "search_filter": {
+                                    "type": "string",
+                                    "description": "Filter to search conversation history."
+                                },
+                                "date_mode": {
+                                    "type": "integer",
+                                    "description": "Mode of date filtering."
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "ecwx-session-id",
+                        "description": "Session ID for user authentication.",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "ecwx-hash",
+                        "description": "Hash for request validation.",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or parameters.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "description": "Description of the error."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated request.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "description": "Description of the error."
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden access due to organization mismatch.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "description": "Description of the error."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "description": "Description of the error."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}`
+
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &swag.Spec{
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/",
+	Schemes:          []string{"http", "https"},
+	Title:            "Report Service API",
+	Description:      "API for managing bot conversation history.",
+	InfoInstanceName: "swagger",
+	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
+}
+
+func init() {
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+}

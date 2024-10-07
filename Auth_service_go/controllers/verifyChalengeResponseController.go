@@ -11,28 +11,32 @@ import (
 	"strconv"
 )
 
+type ChallengeRequest struct {
+	FullNonce         string `json:"full_nonce" binding:"required" extensions:"x-order=1"`
+	ChallengeResponse string `json:"challenge_response" binding:"required" extensions:"x-order=2"`
+}
 
-
-// HandleVerifyChallengeRequest godoc
-// @Summary Handle verify challenge request
-// @Description Handle verify challenge by verifying full_nonce and challenge_response
-// @Tags auth
+// @Summary Verify challenge response
+// @Description This API verifies a challenge response by comparing it with the stored challenge in the database. If successful, it creates a session and returns session details and user privileges.
+// @Tags Auth
 // @Accept json
 // @Produce json
-// @Param verify body struct{FullNonce string `json:"full_nonce"`, ChallengeResponse string `json:"challenge_response"`} true "Challenge data"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{}
-// @Failure 500 {object} map[string]interface{}
+// @Param requestBody body controllers.ChallengeRequest true "Challenge response verification request body"
+// @Success 200 {object} map[string]interface{} "Returns session ID, nonce2, user privileges, and tier if verification is successful"
+// @Failure 400 {object} map[string]interface{} "Bad request, possible errors: missing fields, full_nonce length mismatch"
+// @Failure 401 {object} map[string]interface{} "Unauthenticated, challenge response did not match"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /verify-challenge [post]
-
 func HandleChallengeResponseVerification(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	referenceId := utils.GlobalVarInstance.GetReferenceId()
 	utils.Log(referenceId, "Execute method: handleChallengeResponseVerification")
 
-	var requestBody struct {
-		FullNonce         string `json:"full_nonce"`
-		ChallengeResponse string `json:"challenge_response"`
-	}
+	// var requestBody struct {
+	// 	FullNonce         string `json:"full_nonce"`
+	// 	ChallengeResponse string `json:"challenge_response"`
+	// }
+
+	var requestBody ChallengeRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		utils.Log(referenceId, "REQUEST_ERROR", "Failed to decode request body:", err)
@@ -289,7 +293,6 @@ func HandleChallengeResponseVerification(db *sql.DB, w http.ResponseWriter, r *h
 
 	defer deleteChallengeResponse(db, fullNonce)
 }
-
 
 // deleteChallengeResponse deletes a challenge response from the database
 func deleteChallengeResponse(db *sql.DB, fullNonce string) {

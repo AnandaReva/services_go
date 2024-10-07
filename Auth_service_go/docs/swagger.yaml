@@ -1,4 +1,113 @@
+definitions:
+  controllers.ChallengeRequest:
+    properties:
+      challenge_response:
+        type: string
+        x-order: "2"
+      full_nonce:
+        type: string
+        x-order: "1"
+    required:
+    - challenge_response
+    - full_nonce
+    type: object
+  controllers.LoginRequest:
+    properties:
+      half_nonce:
+        type: string
+        x-order: "2"
+      username:
+        type: string
+        x-order: "1"
+    required:
+    - half_nonce
+    - username
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: This API endpoint processes the login request by accepting a username
+        and half_nonce, then performs various validation steps before returning a
+        full_nonce, salt, and iteration count.
+      parameters:
+      - description: Login request body
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the full_nonce, salt, and iterations if valid user
+            found
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'Bad request, possible errors: missing fields, half_nonce length
+            mismatch'
+          schema:
+            additionalProperties: true
+            type: object
+        "429":
+          description: Too many requests, user has to wait before trying again
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Handle login request
+      tags:
+      - Auth
+  /verify-challenge:
+    post:
+      consumes:
+      - application/json
+      description: This API verifies a challenge response by comparing it with the
+        stored challenge in the database. If successful, it creates a session and
+        returns session details and user privileges.
+      parameters:
+      - description: Challenge response verification request body
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.ChallengeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns session ID, nonce2, user privileges, and tier if verification
+            is successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'Bad request, possible errors: missing fields, full_nonce length
+            mismatch'
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthenticated, challenge response did not match
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Verify challenge response
+      tags:
+      - Auth
 swagger: "2.0"

@@ -9,16 +9,33 @@ import (
 	"time"
 )
 
-// HandleLoginRequest handles login request by processing username and half_nonce
+type LoginRequest struct {
+	Username  string `json:"username" binding:"required" extensions:"x-order=1"`
+	HalfNonce string `json:"half_nonce" binding:"required" extensions:"x-order=2"`
+}
+
+// @Summary Handle login request
+// @Description This API endpoint processes the login request by accepting a username and half_nonce, then performs various validation steps before returning a full_nonce, salt, and iteration count.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param requestBody body controllers.LoginRequest true "Login request body"
+// @Success 200 {object} map[string]interface{} "Returns the full_nonce, salt, and iterations if valid user found"
+// @Failure 400 {object} map[string]interface{} "Bad request, possible errors: missing fields, half_nonce length mismatch"
+// @Failure 429 {object} map[string]interface{} "Too many requests, user has to wait before trying again"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /login [post]
 func HandleLoginRequest(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	referenceId := utils.GlobalVarInstance.GetReferenceId()
 
 	utils.Log(referenceId, "\nExecuting method: HandleLoginRequest")
 
-	var requestBody struct {
-		Username  string `json:"username"`
-		HalfNonce string `json:"half_nonce"`
-	}
+	// var requestBody struct {
+	// 	Username  string `json:"username"`
+	// 	HalfNonce string `json:"half_nonce"`
+	// }
+
+	var requestBody LoginRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		utils.Log(referenceId, "REQUEST_ERROR", "Failed to decode request body:", err)
